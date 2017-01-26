@@ -5,7 +5,7 @@ int s2 = 11;
 int s3 = 12;
 
 //Mux in "SIG" pin
-int SIG_pin = 6;
+int SIG_pin = A0;
 
 // enable pin
 int EN_pin = 4;
@@ -22,7 +22,7 @@ void setup(){
   digitalWrite(s2, LOW);
   digitalWrite(s3, LOW);
 
-  digitalWrite(EN_pin, HIGH);
+  digitalWrite(EN_pin, LOW);
 
   Serial.begin(9600);
 }
@@ -32,13 +32,15 @@ void loop(){
 
   //Loop through and read all 16 values
   //Reports back Value at channel 6 is: 346
-  for(int i = 0; i < 5; i ++){
-    selectChannel(i);
-    Serial.print("Selected channel ");
+  for(int i = 0; i < 3; i ++){
     Serial.print(i);
-    Serial.println();
-    delay(1000);
+    Serial.print(": ");
+    Serial.print(readMux(i));
+    Serial.print(", ");
+    delay(10);
   }
+  Serial.println();
+  delay(100);
 
 }
 
