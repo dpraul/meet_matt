@@ -22,6 +22,8 @@ int dataPin = 2;
 byte leds = 0;
 bool success = true; // make sure the
 
+int mux_delay = 2;
+
 
 void setup() {
   //Mux setup
@@ -42,40 +44,39 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
 
-  Serial.begin(9600);
-
-  while (!Serial) {
-    // wait for serial port initialization before doing anything
-  }
+  Serial.begin(115200);
 }
 
 
 void loop() {
-  leds = 0;
-  updateShiftRegister();
-  StaticJsonBuffer<SENSORDATA_JSON_SIZE> jsonBuffer;
-  JsonObject& jsonRoot = jsonBuffer.createObject();
-  JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
-
-  for (int j = 5; j < 8; j++) {
-    JsonArray& row = dataRows.createNestedArray();
-    bitSet(leds, j);
+  if (Serial) {
+    Serial.readString();
+    leds = 0;
     updateShiftRegister();
-
-    // each data point is a column point added to a row, which is appended to the whole array.
-    for (int i = 0; i < 3; i ++) {
-      selectChannel(i);
-      success = row.add(readMux(i));
-      if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
-        Serial.println("{\"error\": \"Exceeded buffer\"}");
+    StaticJsonBuffer<SENSORDATA_JSON_SIZE> jsonBuffer;
+    JsonObject& jsonRoot = jsonBuffer.createObject();
+    JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
+  
+    for (int j = 4; j < 8; j++) {
+      JsonArray& row = dataRows.createNestedArray();
+      bitSet(leds, j);
+      updateShiftRegister();
+  
+      // each data point is a column point added to a row, which is appended to the whole array.
+      for (int i = 0; i < 4; i ++) {
+        selectChannel(i);
+        success = row.add(readMux(i));  // row.add() responds with whether it worked.
+        if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
+          Serial.println("{\"error\": \"Exceeded buffer\"}");
+        }
+        delay(mux_delay);
       }
-      delay(10);
+  
+      bitClear(leds, j);
     }
-
-    bitClear(leds, j);
+    jsonRoot.printTo(Serial);
+    Serial.println();
   }
-  jsonRoot.printTo(Serial);
-  Serial.println();
 }
 
 void updateShiftRegister() {
