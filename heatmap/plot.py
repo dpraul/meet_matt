@@ -1,40 +1,42 @@
-import time
-import json
+from time import sleep
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
-from serial import Serial
+from heatmap import CONFIG
 
-# Configuration
-COM_PORT = 'COM4'
-BAUD_RATE = 115200
-MUX_DELAY = 10  # ms
-
-ROWS = 3
-COLS = 3
+rows = CONFIG.get('rows')
+cols = CONFIG.get('columns')
 
 
-def main():
+def initial_heatmap_data():
+    """
+
+    :return: An array with data spanning all possible values, min to max, of heatmap
+    """
+    a = np.ones((rows, cols), dtype=np.int) * CONFIG.get('min')
+    a[0][0] = CONFIG.get('max')
+    return a
+
+
+def main(get_data, wait=100):
+    """
+
+    :param get_data: A function that, when ran, samples data for the heatmap
+    :param int wait: ms to sleep between calls
+    :return:
+    """
     # create the figure
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    im = ax.imshow(np.zeros((ROWS, COLS), dtype=np.int), cmap='hot', interpolation='nearest')
-    plt.show(block=False)
+    # must initialize with an array spanning all possible values
+    im = ax.imshow(initial_heatmap_data(), cmap='hot', interpolation='nearest')
+    # add colorbar to make data more readable
+    plt.colorbar(im, orientation='horizontal')
+    plt.show(block=False)  # block=False allows this to exist in a loop
 
-    ser = Serial(COM_PORT, BAUD_RATE)
-    # draw some data in loop
     while True:
-        line = ser.readline()
-        data = json.loads(line)
-        print(data)
-        if 'error' in data:
-            print('Error: %s' % data['error'])
-        else:
-            # replace the image contents
-            im.set_array(np.asarray(data['data'], dtype=np.int))
-            # redraw the figure
-            fig.canvas.draw()
-
-if __name__ == '__main__':
-    main()
+        data = get_data()
+        im.set_array(data)
+        fig.canvas.draw()
+        sleep(wait / 1000.0)

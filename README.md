@@ -10,7 +10,7 @@ stack is through [Anaconda](https://www.continuum.io/downloads).
 SciPy installed shall hereon be referred to as `anaconda3`
 2. Install vitualenv to the `env/` folder using `anaconda3 -m pip install virtualenv env`
 3. Activate the env using `env\Scripts\activate` (Windows) or `env/bin/activate` otherwise.
-4. With the env activated, install requirements with `pip install -r heatmap\requirements.txt`
+4. With the env activated, install requirements with `pip install -r requirements.txt`
 
 The Arduino Sketch relies on the following libraries:
 
@@ -18,7 +18,7 @@ The Arduino Sketch relies on the following libraries:
 
 
 ## Run the software
-1. Modify the configuration in `heatmap/sketch_serial_com/` for the size of the matt.
+1. Modify the configuration in `serial_com/` for the size of the matt.
 2. Use the Arduino IDE to install the sketch to the device.
 3. Modify the configuration in `heatmap/plot.py` for the communication preferences.
 4. With the virtualenv activated, run `anaconda3 heatmap\plot.py`
