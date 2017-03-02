@@ -1,8 +1,8 @@
 CONFIG = {
-    'rows': 3,
-    'columns': 3,
+    'rows': 8,
+    'columns': 16,
     'min': 0,
-    'max': 700,
+    'max': 450,
     'mux_delay': 10,  # ms
     'serial': {
         'baud': 115200,

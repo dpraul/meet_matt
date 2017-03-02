@@ -1,6 +1,6 @@
 #include <ArduinoJson.h>
 // size of buffer might need to be increased
-#define SENSORDATA_JSON_SIZE 200
+#define SENSORDATA_JSON_SIZE 1300
 
 //Mux control pins
 int s0 = 9;
@@ -57,19 +57,18 @@ void loop() {
     JsonObject& jsonRoot = jsonBuffer.createObject();
     JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
   
-    for (int j = 4; j < 8; j++) {
+    for (int j = 0; j < 8; j++) {
       JsonArray& row = dataRows.createNestedArray();
       bitSet(leds, j);
       updateShiftRegister();
   
       // each data point is a column point added to a row, which is appended to the whole array.
-      for (int i = 0; i < 4; i ++) {
+      for (int i = 0; i < 16; i ++) {
         selectChannel(i);
         success = row.add(readMux(i));  // row.add() responds with whether it worked.
         if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
           Serial.println("{\"error\": \"Exceeded buffer\"}");
         }
-        delay(mux_delay);
       }
   
       bitClear(leds, j);
