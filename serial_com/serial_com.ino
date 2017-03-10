@@ -19,10 +19,14 @@ int latchPin = 5;
 int clockPin = 6;
 int dataPin = 2;
 
-byte leds = 0;
-bool success = true; // make sure the
+// Bits to cycle
+int NUM_SHIFT_BITS = 16;
+int NUM_MUX_BITS = 16;
 
+bool success = true; // used for error checks
 int mux_delay = 2;
+int MIN_SHIFT_DELAY_US = 10;
+int shift_delay_us = 1000;
 
 
 void setup() {
@@ -43,6 +47,15 @@ void setup() {
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
+  
+  // empty shift registers
+  digitalWrite(latchPin, LOW);
+  for (int i = 0; i < NUM_SHIFT_BITS; i++) {
+    digitalWrite(clockPin, HIGH);
+    delayMicroseconds(1);
+    digitalWrite(clockPin, LOW);
+  }
+  digitalWrite(latchPin, HIGH);
 
   Serial.begin(115200);
 }
@@ -51,36 +64,42 @@ void setup() {
 void loop() {
   if (Serial) {
     Serial.readString();
-    leds = 0;
-    updateShiftRegister();
     StaticJsonBuffer<SENSORDATA_JSON_SIZE> jsonBuffer;
     JsonObject& jsonRoot = jsonBuffer.createObject();
     JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
   
-    for (int j = 0; j < 8; j++) {
+    digitalWrite(dataPin, HIGH);
+    shiftInDataOnce(shift_delay_us);
+    digitalWrite(dataPin, LOW);
+    for (int j = 0; j < NUM_SHIFT_BITS; j++) {
       JsonArray& row = dataRows.createNestedArray();
-      bitSet(leds, j);
-      updateShiftRegister();
-  
       // each data point is a column point added to a row, which is appended to the whole array.
-      for (int i = 0; i < 16; i ++) {
+      for (int i = 0; i < NUM_MUX_BITS; i ++) {
         selectChannel(i);
         success = row.add(readMux(i));  // row.add() responds with whether it worked.
         if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
           Serial.println("{\"error\": \"Exceeded buffer\"}");
         }
       }
-  
-      bitClear(leds, j);
+
+      // right now this will shift it an extra time
+      shiftInDataOnce(shift_delay_us);  // go to the next
     }
     jsonRoot.printTo(Serial);
     Serial.println();
   }
 }
 
-void updateShiftRegister() {
+void shiftInDataOnce(int us) {
+  /**
+   * Shifts in whatever is currently in the dataPin with a delay of the pulse of twice us
+   * To shift in high, digitalWrite(dataPin, HIGH) before shiftInDataOnce, then LOW after 
+   */
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, leds);
+  digitalWrite(clockPin, HIGH);
+  delayMicroseconds(us);
+  digitalWrite(clockPin, LOW);
+  delayMicroseconds(us);
   digitalWrite(latchPin, HIGH);
 }
 
