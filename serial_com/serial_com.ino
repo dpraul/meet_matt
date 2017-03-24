@@ -15,9 +15,9 @@ int SIG_pin = A0;
 int EN_pin = 4;
 
 //Shift register pins
-int latchPin = 5;
-int clockPin = 6;
-int dataPin = 2;
+int latchPin = 5;  // RCLK
+int clockPin = 6;  // SRCLK
+int dataPin = 2;   // SER
 
 // Bits to cycle
 int NUM_SHIFT_BITS = 16;

@@ -1,11 +1,11 @@
 //Shift register pins
-int latchPin = 5;
-int clockPin = 6;
-int dataPin = 2;
+int latchPin = 5;  // RCLK
+int clockPin = 6;  // SRCLK
+int dataPin = 2;   // SER
 
 int NUM_PINS = 16;
 int MIN_SHIFT_DELAY_US = 10;
-int shift_delay_us = 1000;
+int shift_delay_us = 50;
 
 
 void setup() {
@@ -36,9 +36,9 @@ void shiftInDataOnce(int us) {
    */
   digitalWrite(latchPin, LOW);
   digitalWrite(clockPin, HIGH);
-  delayMicroseconds(us);
+  delay(us);
   digitalWrite(clockPin, LOW);
-  delayMicroseconds(us);
+  delay(us);
   digitalWrite(latchPin, HIGH);
 }
 
