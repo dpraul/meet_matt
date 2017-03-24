@@ -3,16 +3,25 @@
 #define SENSORDATA_JSON_SIZE 1300
 
 //Mux control pins
-int s0 = 9;
-int s1 = 10;
-int s2 = 11;
-int s3 = 12;
+int MUX00 = 9;
+int MUX01 = 10;
+int MUX02 = 11;
+int MUX03 = 12;
+int MUX10 = 13;
+int MUX11 = 7;
+int MUX12 = 4;
+int MUX13 = 3;
+int MUX_CONTROL[2][4] = {
+  {MUX00, MUX01, MUX02, MUX03},
+  {MUX10, MUX11, MUX12, MUX13}
+};
+
 
 //Mux in "SIG" pin
-int SIG_pin = A0;
+int MUX_SIG_0 = A0;
+int MUX_SIG_1 = A1;
+int MUX_SIG[2] = {MUX_SIG_0, MUX_SIG_1};
 
-// enable pin
-int EN_pin = 4;
 
 //Shift register pins
 int latchPin = 5;  // RCLK
@@ -20,28 +29,25 @@ int clockPin = 6;  // SRCLK
 int dataPin = 2;   // SER
 
 // Bits to cycle
-int NUM_SHIFT_BITS = 16;
+int NUM_SHIFT_BITS = 56;
 int NUM_MUX_BITS = 16;
 
 bool success = true; // used for error checks
-int mux_delay = 2;
+int MUX_DELAY_US = 1;
 int MIN_SHIFT_DELAY_US = 10;
-int shift_delay_us = 1000;
+int SHIFT_DELAY_US = MIN_SHIFT_DELAY_US;
 
 
 void setup() {
   //Mux setup
-  pinMode(s0, OUTPUT);
-  pinMode(s1, OUTPUT);
-  pinMode(s2, OUTPUT);
-  pinMode(s3, OUTPUT);
-
-  digitalWrite(s0, LOW);
-  digitalWrite(s1, LOW);
-  digitalWrite(s2, LOW);
-  digitalWrite(s3, LOW);
-
-  digitalWrite(EN_pin, LOW);
+  for (int i = 0; i < 2; i++) {  // MUX_CHANNEL.length
+    for (int j = 0; j < 4; j++) {  // MUX_CHANNEL[0].length
+      pinMode(MUX_CONTROL[i][j], OUTPUT);
+    }
+  }
+  selectMuxChannel(0, 0);
+  //TODO: fix mux channels. This currently sets the second mux to an unused channel.
+  selectMuxChannel(1, 15);
 
   //Shift register setup
   pinMode(latchPin, OUTPUT);
@@ -69,13 +75,12 @@ void loop() {
     JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
   
     digitalWrite(dataPin, HIGH);
-    shiftInDataOnce(shift_delay_us);
+    shiftInDataOnce(SHIFT_DELAY_US);
     digitalWrite(dataPin, LOW);
     for (int j = 0; j < NUM_SHIFT_BITS; j++) {
       JsonArray& row = dataRows.createNestedArray();
       // each data point is a column point added to a row, which is appended to the whole array.
-      for (int i = 0; i < NUM_MUX_BITS; i ++) {
-        selectChannel(i);
+      for (int i = NUM_MUX_BITS - 1; i >= 0; i--) {
         success = row.add(readMux(i));  // row.add() responds with whether it worked.
         if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
           Serial.println("{\"error\": \"Exceeded buffer\"}");
@@ -83,7 +88,7 @@ void loop() {
       }
 
       // right now this will shift it an extra time
-      shiftInDataOnce(shift_delay_us);  // go to the next
+      shiftInDataOnce(SHIFT_DELAY_US);  // go to the next
     }
     jsonRoot.printTo(Serial);
     Serial.println();
@@ -103,7 +108,6 @@ void shiftInDataOnce(int us) {
   digitalWrite(latchPin, HIGH);
 }
 
-int controlPin[] = {s0, s1, s2, s3};
 
 int muxChannel[16][4] = {
   {0, 0, 0, 0}, //channel 0
@@ -121,25 +125,21 @@ int muxChannel[16][4] = {
   {0, 0, 1, 1}, //channel 12
   {1, 0, 1, 1}, //channel 13
   {0, 1, 1, 1}, //channel 14
-  {1, 1, 1, 1} //channel 15
+  {1, 1, 1, 1}  //channel 15
 };
 
+int selectMuxChannel(int which, int channel) {
+  //loop through the 4 control pins
+  for (int i = 0; i < 4; i ++) {
+    digitalWrite(MUX_CONTROL[which][i], muxChannel[channel % 16][i]);
+  }
+}
+
 int readMux(int channel) {
-  //loop through the 4 sig
-  for (int i = 0; i < 4; i ++) {
-    digitalWrite(controlPin[i], muxChannel[channel][i]);
-  }
-
+  int which = channel / 16;
+  selectMuxChannel(which, channel);
+  delayMicroseconds(MUX_DELAY_US);
   //read the value at the SIG pin
-  int val = analogRead(SIG_pin);
-
-  //return the value
-  return val;
+  return analogRead(MUX_SIG[which]);
 }
 
-int selectChannel(int channel) {
-  //loop through the 4 sig
-  for (int i = 0; i < 4; i ++) {
-    digitalWrite(controlPin[i], muxChannel[channel][i]);
-  }
-}
