@@ -1,3 +1,13 @@
+#define FASTADC 1
+
+// defines for setting and clearing register bits
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
 //Mux enable pins
 int MUX0_EN = A2;
 
@@ -38,6 +48,13 @@ int SHIFT_DELAY_US = MIN_SHIFT_DELAY_US;
 
 
 void setup() {
+  #if FASTADC
+   // set prescale to 16
+   sbi(ADCSRA,ADPS2) ;
+   cbi(ADCSRA,ADPS1) ;
+   cbi(ADCSRA,ADPS0) ;
+  #endif
+  
   //Mux setup
   for (int i = 0; i < 2; i++) {  // MUX_CHANNEL.length
     for (int j = 0; j < 4; j++) {  // MUX_CHANNEL[0].length
