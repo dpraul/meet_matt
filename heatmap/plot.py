@@ -1,5 +1,3 @@
-from time import sleep
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -19,11 +17,10 @@ def initial_heatmap_data():
     return a
 
 
-def main(get_data, wait=100):
+def main(get_data):
     """
 
     :param get_data: A function that, when ran, samples data for the heatmap
-    :param int wait: ms to sleep between calls
     :return:
     """
     # create the figure
@@ -33,10 +30,13 @@ def main(get_data, wait=100):
     im = ax.imshow(initial_heatmap_data(), cmap='hot', interpolation='nearest')
     # add colorbar to make data more readable
     plt.colorbar(im, orientation='horizontal')
+    # display fullscreen
+    wm = plt.get_current_fig_manager()
+    wm.window.state('zoomed')
+
     plt.show(block=False)  # block=False allows this to exist in a loop
 
     while True:
         data = get_data()
         im.set_array(data)
         fig.canvas.draw()
-        sleep(wait / 1000.0)

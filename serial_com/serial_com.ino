@@ -1,6 +1,5 @@
-#include <ArduinoJson.h>
-// size of buffer might need to be increased
-#define SENSORDATA_JSON_SIZE 1300
+//Mux enable pins
+int MUX0_EN = A2;
 
 //Mux control pins
 int MUX00 = 9;
@@ -30,7 +29,7 @@ int dataPin = 2;   // SER
 
 // Bits to cycle
 int NUM_SHIFT_BITS = 56;
-int NUM_MUX_BITS = 16;
+int NUM_MUX_BITS = 16 + 3;
 
 bool success = true; // used for error checks
 int MUX_DELAY_US = 1;
@@ -45,9 +44,7 @@ void setup() {
       pinMode(MUX_CONTROL[i][j], OUTPUT);
     }
   }
-  selectMuxChannel(0, 0);
-  //TODO: fix mux channels. This currently sets the second mux to an unused channel.
-  selectMuxChannel(1, 15);
+  pinMode(MUX0_EN, OUTPUT);
 
   //Shift register setup
   pinMode(latchPin, OUTPUT);
@@ -63,37 +60,33 @@ void setup() {
   }
   digitalWrite(latchPin, HIGH);
 
-  Serial.begin(115200);
+  Serial.begin(500000);
 }
 
 
 void loop() {
-  if (Serial) {
-    Serial.readString();
-    StaticJsonBuffer<SENSORDATA_JSON_SIZE> jsonBuffer;
-    JsonObject& jsonRoot = jsonBuffer.createObject();
-    JsonArray& dataRows = jsonRoot.createNestedArray("data");  // initialize data array in JSON
-  
+  if (Serial && Serial.read() == 6) {
     digitalWrite(dataPin, HIGH);
     shiftInDataOnce(SHIFT_DELAY_US);
     digitalWrite(dataPin, LOW);
     for (int j = 0; j < NUM_SHIFT_BITS; j++) {
-      JsonArray& row = dataRows.createNestedArray();
-      // each data point is a column point added to a row, which is appended to the whole array.
       for (int i = NUM_MUX_BITS - 1; i >= 0; i--) {
-        success = row.add(readMux(i));  // row.add() responds with whether it worked.
-        if (!success) {  // exceeded buffer -- send the error over serial. Increase at top of file.
-          Serial.println("{\"error\": \"Exceeded buffer\"}");
-        }
+        sendInt(readMux(i));
       }
 
       // right now this will shift it an extra time
       shiftInDataOnce(SHIFT_DELAY_US);  // go to the next
     }
-    jsonRoot.printTo(Serial);
-    Serial.println();
   }
 }
+
+uint16_t MASK = B11111111;
+void sendInt(uint16_t num) {
+  // write an integer in exactly two pulses
+  Serial.write(num >> 8);
+  Serial.write(num & MASK);
+}
+
 
 void shiftInDataOnce(int us) {
   /**
@@ -137,6 +130,13 @@ int selectMuxChannel(int which, int channel) {
 
 int readMux(int channel) {
   int which = channel / 16;
+  if (which == 0) {
+    digitalWrite(MUX0_EN, LOW);
+    selectMuxChannel(1, 8);  // set to unused channel
+  }
+  else {
+    digitalWrite(MUX0_EN, HIGH);
+  }
   selectMuxChannel(which, channel);
   delayMicroseconds(MUX_DELAY_US);
   //read the value at the SIG pin

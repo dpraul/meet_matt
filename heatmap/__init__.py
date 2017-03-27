@@ -1,11 +1,10 @@
 CONFIG = {
-    'rows': 8,  # shift
-    'columns': 16,  # multiplexer
+    'rows': 56,  # shift
+    'columns': 16 + 3,  # multiplexer
     'min': 0,
     'max': 450,
-    'mux_delay': 10,  # ms
     'serial': {
-        'baud': 115200,
+        'baud': 500000,
         'port': 'COM4'
     }
 }

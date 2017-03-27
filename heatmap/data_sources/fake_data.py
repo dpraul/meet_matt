@@ -7,4 +7,4 @@ cols = CONFIG.get('columns')
 
 
 def get_data():
-    return np.random.randint(0, 600, size=(rows, cols))
+    return np.random.randint(0, 1024, size=(rows, cols))
