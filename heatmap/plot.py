@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from heatmap import CONFIG
 
@@ -34,9 +35,15 @@ def main(get_data):
     wm = plt.get_current_fig_manager()
     wm.window.state('zoomed')
 
-    plt.show(block=False)  # block=False allows this to exist in a loop
+    def data_gen():
+        while True:
+            data = get_data()
+            yield data
 
-    while True:
-        data = get_data()
+    def update(data):
         im.set_array(data)
-        fig.canvas.draw()
+        return [im]
+
+    ani = animation.FuncAnimation(fig, update, data_gen, interval=0, blit=True)
+
+    plt.show(block=True)
