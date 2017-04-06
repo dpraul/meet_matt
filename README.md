@@ -7,7 +7,7 @@ Built in Python3 and relies on the SciPy stack. On Windows, the easiest way to u
 stack is through [Anaconda](https://www.continuum.io/downloads).
 
 1. Install the SciPy stack using your preferred method.
-2. Install virtualenv (it may already be installed) with `python -m pip install virtualenv env`
+2. Install virtualenv (it may already be installed) with `python -m pip install virtualenv`
 3. Install virtualenv to the `env/` folder using `python -m virtualenv env`
 4. Activate the env using `env\Scripts\activate` (Windows) or `env/bin/activate` otherwise.
 5. With the env activated, install requirements with `pip install -r requirements.txt`
