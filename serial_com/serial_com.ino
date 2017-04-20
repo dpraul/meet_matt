@@ -27,8 +27,8 @@ int MUX_CONTROL[2][4] = {
 
 
 //Mux in "SIG" pin
-int MUX_SIG_0 = A0;
-int MUX_SIG_1 = A1;
+int MUX_SIG_0 = A1;
+int MUX_SIG_1 = A0;
 int MUX_SIG[2] = {MUX_SIG_0, MUX_SIG_1};
 
 
