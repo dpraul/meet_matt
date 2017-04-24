@@ -22,6 +22,16 @@ ser = Serial(COM_PORT, BAUD_RATE)
 time.sleep(5)
 
 START_BYTE = bytearray([6])
+EMPTY_ROW = np.zeros(cols, dtype=np.int)
+
+
+def fix_data(data):
+    """ Swap rows that have been rearranged
+
+    :return:
+    """
+    data[8], data[54] = data[54], EMPTY_ROW
+    return data
 
 
 def get_data():
@@ -30,5 +40,5 @@ def get_data():
     unpacked = struct.unpack(unpack_format, raw)
     data = np.reshape(np.asarray(unpacked, dtype=np.int), [rows, cols])
 
-    return data
+    return fix_data(data)
 
