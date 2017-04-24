@@ -21,3 +21,6 @@ stack is through [Anaconda](https://www.continuum.io/downloads).
 5. Run configurations:
     1. To run with random sample data, run `python run.py fake`
     2. To get data from serial, run `python run.py ints`
+    3. To save the data after you quit, add a filename to the command, i.e. `python run.py ints push_up`
+       to save the session to `data/push_up_TIMESTAMP.json'`
+6. While running, press Enter to save a new section in the data.
