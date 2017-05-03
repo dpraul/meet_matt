@@ -42,14 +42,10 @@ def main(get_data):
     running = True
     all_data = {'live': []}
 
-    def generate_data():
-        while True:
-            data = get_data()
-            yield data
-
-    def generate_and_record_data():
+    def get_and_record_data():
+        g = get_data()
         while running:
-            data = get_data()
+            data = next(g)
             all_data['live'].append({
                 'i': len(all_data['live']),
                 't': time.time(),
@@ -68,7 +64,7 @@ def main(get_data):
         im.set_array(data)
         return [im]
 
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 2 and sys.argv[1] != 'replay':
         filename = '%s_%s.json' % (sys.argv[2], int(time.time()))
     else:
         filename = None
@@ -78,11 +74,11 @@ def main(get_data):
         wm = plt.get_current_fig_manager()
         wm.window.state('zoomed')
 
-        ani = animation.FuncAnimation(fig, update, generate_data, interval=0, blit=True)
+        ani = animation.FuncAnimation(fig, update, get_data, interval=0, blit=True)
         plt.show(block=True)
     else:
         print('Press Ctrl+C to save data as %s' % filename)
-        ani = animation.FuncAnimation(fig, update, generate_and_record_data, interval=0, blit=True)
+        ani = animation.FuncAnimation(fig, update, get_and_record_data, interval=0, blit=True)
         fig.canvas.mpl_connect('key_release_event', on_key_release)
         try:
             plt.show(block=True)

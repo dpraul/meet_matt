@@ -35,10 +35,11 @@ def fix_data(data):
 
 
 def get_data():
-    ser.write(START_BYTE)  # send start bit
-    raw = ser.read(num_bytes)
-    unpacked = struct.unpack(unpack_format, raw)
-    data = np.reshape(np.asarray(unpacked, dtype=np.int), [rows, cols])
+    while True:
+        ser.write(START_BYTE)  # send start bit
+        raw = ser.read(num_bytes)
+        unpacked = struct.unpack(unpack_format, raw)
+        data = np.reshape(np.asarray(unpacked, dtype=np.int), [rows, cols])
 
-    return fix_data(data)
+        yield fix_data(data)
 
