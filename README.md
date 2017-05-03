@@ -20,7 +20,19 @@ stack is through [Anaconda](https://www.continuum.io/downloads).
 4. Activate the env using `env\Scripts\activate` (Windows) or `env/bin/activate` otherwise.
 5. Run configurations:
     1. To run with random sample data, run `python run.py fake`
-    2. To get data from serial, run `python run.py ints`
-    3. To save the data after you quit, add a filename to the command, i.e. `python run.py ints push_up`
+    2. To get data from serial, run `python run.py serial`
+    3. To save the data after you quit, add a filename to the command, i.e. `python run.py serial push_up`
        to save the session to `data/push_up_TIMESTAMP.json'`
-6. While running, press Enter to save a new section in the data.
+        - While running, press Enter to save a new section in the data.
+    4. To replay saved data, run `python run.py replay FILENAME.json`
+        - you can also request a single frame by adding arguments, i.e. `python run.py replay FILANAME 3 22`
+          will grab index 22 from section 3 of FILENAME.
+
+
+## Analysis
+
+1. Install TensorFlow: https://www.tensorflow.org/install/
+2. To convert saved data into digestible formats, run `python model.py create`
+    - results can be previewed as images by running `python model.py preview`
+3. To train the model, run `python model.py train`
+    - To train on top of a prior model, run `python model.py train r`

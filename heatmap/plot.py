@@ -9,6 +9,8 @@ import matplotlib.animation as animation
 
 from heatmap import CONFIG
 
+from ml.network import get_predictor
+
 rows = CONFIG.get('rows')
 cols = CONFIG.get('columns')
 counter = 0
@@ -37,10 +39,17 @@ def main(get_data):
     im = ax.imshow(initial_heatmap_data(), cmap='hot', interpolation='nearest')
     # add colorbar to make data more readable
     plt.colorbar(im, orientation='horizontal')
+    # text to label workout
+    text = ax.text(0.95, 0.01, 'workout',
+                   verticalalignment='bottom', horizontalalignment='right',
+                   transform=ax.transAxes,
+                   color='white', fontsize=15)
 
     # variables used if saving
     running = True
     all_data = {'live': []}
+
+    predictor = get_predictor()
 
     def get_and_record_data():
         g = get_data()
@@ -61,8 +70,10 @@ def main(get_data):
             counter += 1
 
     def update(data):
+        predicted = predictor(data)
+        text.set_text(predicted)
         im.set_array(data)
-        return [im]
+        return (im, text)
 
     if len(sys.argv) > 2 and sys.argv[1] != 'replay':
         filename = '%s_%s.json' % (sys.argv[2], int(time.time()))
